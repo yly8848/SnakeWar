@@ -1,36 +1,30 @@
 import math
+import json
 
-a = (1, 2)
-b = (3, 4)
-c = (1, 2)
-mylist = [a, b]
+data = '{"data":[1,2,4]}'
+a = json.loads(data)
+print(a["data"], type(a["data"]))
 
-print(mylist[1])
+mylist = [(1, 3), (5, 6)]
+b = json.dumps(mylist)
+print(b, type(b))
 
-mylist.append((6, 6))
-mylist.insert(0, (7, 7))
+c = json.loads(b)
+print(c, type(c))
 
-mylist.pop()
+d = "aaa"
+print(d + "sdf")
 
-print(a == c)
-for x in mylist:
-    print(x[1], x[0])
+e = {1: 'a', 3: 'fff', 'aaa': 'haha'}
 
+e[2] = 'dsf'
 
-print(math.pi)
-print(math.sin(math.pi * 2 * (45 / 360)))
-print(math.sin(math.pi * 2 * (90 / 360)))
-print(round(math.sin(math.pi * 2), 4))
-print(math.sin(math.pi * 2 * (298 / 360)))
+for x in e:
+    if x != 'aaa':
+        print(e[x])
+del e[2]
 
-print((-10 % 360))
+print(e)
 
-mylist = [1, 6, 8, 84, 6, 84, 5, 8, 6, 5, 1, 3, 2]
-
-print(len(mylist))
-for x in mylist:
-    if x == 84:
-        mylist.remove(84)
-        print(len(mylist))
-
-print(mylist)
+data = '[[413, 2917], [413, 2911], [413, 2905], [413, 2899], [413, 2893], [413, 2887], [413, 2881], [413, 2875], [413, 2869], [413, 2863], [413, 2857], [413, 2851], [413, 2845], [413, 2839], [413, 2833], [413, 2827], [413, 2821], [413, 2815], [413, 2809], [413, 2803], [413, 2797], [413, 2791], [413, 2785], [413, 2779], [413, 2773], [413, 2767]]'
+print(json.loads(data))

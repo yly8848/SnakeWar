@@ -6,7 +6,7 @@ from sys import exit
 from random import *
 import math
 
-import PositionCalc
+from PositionCalc import *
 
 
 class CreatWindow(object):
@@ -33,9 +33,10 @@ class CreatWindow(object):
         pygame.init()
         self.screen = pygame.display.set_mode(size, 0, 32)
         pygame.display.set_caption("Snake War")
+        self.background = pygame.image.load("./bg.png").convert()
         self.clock = pygame.time.Clock()
 
-        self.calc = PositionCalc.Calc(self.Position, self.locat, self.size)
+        self.calc = Calc(self.Position, self.locat, self.size)
         self.winPos = self.calc.getWinPos()
 
         self.initSnake()
@@ -50,14 +51,13 @@ class CreatWindow(object):
     def setTick(self, fip=60):
         self.clock.tick(fip)
 
-    def setBackground(self, img=None):
+    def setBackground(self):
 
-        self.screen.fill((255, 255, 255))
+        self.screen.fill((0, 0, 0))
 
-        if img is not None:
-            x = 0 - self.winPos[0]
-            y = 0 - self.winPos[1]
-            self.screen.blit(img, (x, y))
+        x = 0 - self.winPos[0]
+        y = 0 - self.winPos[1]
+        self.screen.blit(self.background, (x, y))
 
     def drawCircle(self, rp, rc=(43, 232, 2)):
         #rp = (100, 100)
@@ -77,9 +77,9 @@ class CreatWindow(object):
                 p = self.calc.getObjectPos(self.winPos, x)
                 self.drawCircle(p, (123, 36, 241))
 
-        if len(self.food) < 5:
+        if len(self.food) < 30:
             for i in range(20):
-                self.food.append((randint(10, 630), randint(10, 390)))
+                self.food.append((randint(10, 1000), randint(10, 1000)))
 
     def update(self):
         pygame.display.update()
@@ -91,16 +91,22 @@ class CreatWindow(object):
                 exit()
 
     def locatJudge(self):
+        # locat位置判断,以及更新winPos,到达地图移动的效果
 
-        if self.locat[0] <= 150 or self.locat[0] >= 490 or self.locat[1] <= 100 or self.locat[1] >= 300:
+        a = self.size[0] // 5 * 2  # 左上角
+        b = self.size[0] // 5 * 3  # 右上角
+        c = self.size[1] // 5 * 2  # 左下角
+        d = self.size[1] // 5 * 3  # 右下角
+
+        if self.locat[0] <= a or self.locat[0] >= b or self.locat[1] <= c or self.locat[1] >= d:
             self.winPos = self.calc.getWinPos()
 
             x = self.locat[0] + self.speed_xy[0]
             y = self.locat[1] + self.speed_xy[1]
 
-            if (self.locat[0] <= 150 and x > self.locat[0]) or (self.locat[0] >= 490 and x < self.locat[0]):
+            if (self.locat[0] <= a and x > self.locat[0]) or (self.locat[0] >= b and x < self.locat[0]):
                 self.locat[0] += self.speed_xy[0]
-            if (self.locat[1] <= 100 and y > self.locat[1]) or (self.locat[1] >= 300 and y < self.locat[1]):
+            if (self.locat[1] <= c and y > self.locat[1]) or (self.locat[1] >= d and y < self.locat[1]):
                 self.locat[1] += self.speed_xy[1]
         else:
             self.locat[0] += self.speed_xy[0]
@@ -172,22 +178,13 @@ class CreatWindow(object):
         if flag:
             self.snake.pop()
 
-        if self.locat[0] > 640:
-            self.locat[0] = 0
-        if self.locat[0] < 0:
-            self.locat[0] = 640
-        if self.locat[1] > 400:
-            self.locat[1] = 0
-        if self.locat[1] < 0:
-            self.locat[1] = 400
-
 
 if __name__ == '__main__':
     win = CreatWindow((640, 400))
-    background = pygame.image.load("bg.png").convert()
+
     while True:
         win.setTick(40)
-        win.setBackground(background)
+        win.setBackground()
         win.ListionEvent()
 
         win.move()
