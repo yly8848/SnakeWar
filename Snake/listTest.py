@@ -24,3 +24,13 @@ print(round(math.sin(math.pi * 2), 4))
 print(math.sin(math.pi * 2 * (298 / 360)))
 
 print((-10 % 360))
+
+mylist = [1, 6, 8, 84, 6, 84, 5, 8, 6, 5, 1, 3, 2]
+
+print(len(mylist))
+for x in mylist:
+    if x == 84:
+        mylist.remove(84)
+        print(len(mylist))
+
+print(mylist)
