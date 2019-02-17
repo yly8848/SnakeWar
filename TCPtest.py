@@ -33,6 +33,7 @@ while True:
     win.move()
     win.drawSnake()
     win.drawFood()
+    win.dieJudge()
 
     tcp.sendData(json.dumps(win.snake))
 

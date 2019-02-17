@@ -5,6 +5,7 @@ from pygame.locals import *
 from sys import exit
 from random import *
 import math
+import time
 
 from PositionCalc import *
 
@@ -27,6 +28,8 @@ class CreatWindow(object):
     snake = []  # 蛇身节点
     food = []
 
+    isDie = False
+
     def __init__(self, size):
 
         self.size = size
@@ -44,9 +47,11 @@ class CreatWindow(object):
         self.initSnake()
 
         for x in range(100):
-            self.food.append((randint(10, 1000), randint(10, 1000)))
+            self.food.append(
+                (randint(10, self.MapSize[0] - 10), randint(10, self.MapSize[1] - 10)))
 
     def initSnake(self):
+        self.snake = []
         for x in range(10):
             self.snake.append((self.Position[0], self.Position[1] + x * 10))
 
@@ -67,6 +72,7 @@ class CreatWindow(object):
         pygame.draw.circle(self.screen, rc, rp, rr)
 
     def drawSnake(self):
+
         for x in self.snake:
             if self.calc.rangeJudge(self.winPos, x):
                 p = self.calc.getObjectPos(self.winPos, x)
@@ -219,9 +225,27 @@ class CreatWindow(object):
             self.snake.pop()
 
     def dieJudge(self):
+
+        if self.isDie:
+            self.isDie = False
+            time.sleep(1)
+            # 随机出生点
+            self.Position[0] = randint(100, self.MapSize[0] - 100)
+            self.Position[1] = randint(100, self.MapSize[1] - 100)
+            self.locat[0] = self.size[0] // 2
+            self.locat[1] = self.size[1] // 2
+            self.winPos = self.calc.getWinPos()
+            self.initSnake()
+
         if self.Position[0] <= 0 or self.Position[0] >= self.MapSize[0] or self.Position[1] <= 0 or self.Position[1] >= self.MapSize[1]:
-            self.maxspeed = 0
+            self.isDie = True
             print("you is die")
+
+            # 变成养料
+            for i in range(2, len(self.snake), 4):
+                self.food.append(self.snake[i])
+
+            self.snake.clear()
 
 
 if __name__ == '__main__':
@@ -232,9 +256,9 @@ if __name__ == '__main__':
         win.setBackground()
         win.ListionEvent()
 
-        win.move()
-        win.drawSnake()
-        win.drawFood()
         win.dieJudge()
+        win.move()
+        win.drawFood()
+        win.drawSnake()
 
         win.update()

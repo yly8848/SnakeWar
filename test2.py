@@ -42,7 +42,7 @@ while True:
 
     # win.move()
     a.win.drawSnake()
-    a.win.drawFood()
+    # a.win.drawFood()
 
     a.win.winPos = [a.win.snake[0][0] - 320, a.win.snake[0][1] - 200]
 
