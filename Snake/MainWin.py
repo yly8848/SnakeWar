@@ -12,14 +12,16 @@ from PositionCalc import *
 class CreatWindow(object):
     """游戏窗口控制类"""
 
+    MapSize = [1680, 945]  # 地图大小
+
     locat = []  # 蛇头 本地窗口坐标
     Position = [300, 300]  # 蛇头 大地图坐标
-    winPos = []
+    winPos = []  # 视野/窗口左上角位于大地图的坐标
 
     maxspeed = 6  # 最大速度
     speed_xy = [maxspeed, 0]  # x,y方向的速度
 
-    angle = 180  # 蛇头方向的偏转角度
+    angle = 180  # 蛇头方向的偏转角度 0~360
     angle_speed = 15  # 蛇头转向时的速度
 
     snake = []  # 蛇身节点
@@ -89,6 +91,12 @@ class CreatWindow(object):
             if event.type == QUIT:
                 pygame.quit()
                 exit()
+            if event.type == KEYDOWN:
+                if event.key == K_SPACE:  # 空格加速
+                    self.maxspeed = 10
+            if event.type == KEYUP:
+                if event.key == K_SPACE:
+                    self.maxspeed = 6
 
     def locatJudge(self):
         # locat位置判断,以及更新winPos,到达地图移动的效果
@@ -98,7 +106,37 @@ class CreatWindow(object):
         c = self.size[1] // 5 * 2  # 左下角
         d = self.size[1] // 5 * 3  # 右下角
 
-        if self.locat[0] <= a or self.locat[0] >= b or self.locat[1] <= c or self.locat[1] >= d:
+        # 到达边界时,限制视野移动
+        if self.winPos[0] <= -100 or self.winPos[0] + self.size[0] >= self.MapSize[0] + 100 or self.winPos[1] <= -100 or self.winPos[1] + self.size[1] >= self.MapSize[1] + 100:
+
+            if self.winPos[0] <= -100:
+                self.winPos[1] += self.speed_xy[1]
+                if self.speed_xy[0] > 0:
+                    self.winPos[0] += self.speed_xy[0]
+                else:
+                    self.locat[0] += self.speed_xy[0]
+            elif self.winPos[0] + self.size[0] >= self.MapSize[0] + 100:
+                self.winPos[1] += self.speed_xy[1]
+                if self.speed_xy[0] < 0:
+                    self.winPos[0] += self.speed_xy[0]
+                else:
+                    self.locat[0] += self.speed_xy[0]
+            elif self.winPos[1] <= -100:
+
+                self.winPos[0] += self.speed_xy[0]
+                if self.speed_xy[1] > 0:
+                    self.winPos[1] += self.speed_xy[1]
+                else:
+                    self.locat[1] += self.speed_xy[1]
+            elif self.winPos[1] + self.size[1] >= self.MapSize[1] + 100:
+                self.winPos[0] += self.speed_xy[0]
+                if self.speed_xy[1] < 0:
+                    self.winPos[1] += self.speed_xy[1]
+                else:
+                    self.locat[1] += self.speed_xy[1]
+
+        # 在地图范围内,locat超出给定的abcd范围,地图移动
+        elif self.locat[0] <= a or self.locat[0] >= b or self.locat[1] <= c or self.locat[1] >= d:
             self.winPos = self.calc.getWinPos()
 
             x = self.locat[0] + self.speed_xy[0]
@@ -108,6 +146,8 @@ class CreatWindow(object):
                 self.locat[0] += self.speed_xy[0]
             if (self.locat[1] <= c and y > self.locat[1]) or (self.locat[1] >= d and y < self.locat[1]):
                 self.locat[1] += self.speed_xy[1]
+
+        # 在abcd范围内,地图视野不变
         else:
             self.locat[0] += self.speed_xy[0]
             self.locat[1] += self.speed_xy[1]
@@ -173,10 +213,15 @@ class CreatWindow(object):
                 self.food.remove(i)
                 flag = False
 
-        # 加入蛇身列表,移动蛇
+        # 移动蛇
         self.snake.insert(0, (self.Position[0], self.Position[1]))
         if flag:
             self.snake.pop()
+
+    def dieJudge(self):
+        if self.Position[0] <= 0 or self.Position[0] >= self.MapSize[0] or self.Position[1] <= 0 or self.Position[1] >= self.MapSize[1]:
+            self.maxspeed = 0
+            print("you is die")
 
 
 if __name__ == '__main__':
@@ -190,5 +235,6 @@ if __name__ == '__main__':
         win.move()
         win.drawSnake()
         win.drawFood()
+        win.dieJudge()
 
         win.update()
