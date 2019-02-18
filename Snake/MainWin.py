@@ -6,8 +6,11 @@ from sys import exit
 from random import *
 import math
 import time
+import threading
 
 from PositionCalc import *
+from Roboter import AI
+from Vector import Vector
 
 
 class CreatWindow(object):
@@ -27,6 +30,7 @@ class CreatWindow(object):
 
     snake = []  # 蛇身节点
     food = []
+    enemylist = []
 
     isDie = False
 
@@ -51,7 +55,7 @@ class CreatWindow(object):
                 (randint(10, self.MapSize[0] - 10), randint(10, self.MapSize[1] - 10)))
 
     def initSnake(self):
-        self.snake = []
+
         for x in range(10):
             self.snake.append((self.Position[0], self.Position[1] + x * 10))
 
@@ -86,8 +90,26 @@ class CreatWindow(object):
                 self.drawCircle(p, (123, 36, 241))
 
         if len(self.food) < 30:
-            for i in range(20):
-                self.food.append((randint(10, 1000), randint(10, 1000)))
+            for i in range(40):
+                self.food.append(
+                    (randint(10, self.MapSize[0] - 10), randint(10, self.MapSize[1] - 10)))
+
+    def drawEnemy(self, ai):
+
+        if ai.isDie and ai.flag:
+            ai.flag = False
+            for i in range(0, len(self.enemylist), 3):
+                self.food.append(self.enemylist[i])
+            self.enemylist.clear()
+        elif not ai.isDie:
+            self.enemylist.insert(0, ai.Head.to_int())
+            if ai.length < len(self.enemylist):
+                self.enemylist.pop()
+
+            for x in self.enemylist:
+                if self.calc.rangeJudge(self.winPos, x):
+                    p = self.calc.getObjectPos(self.winPos, x)
+                    self.drawCircle(p)
 
     def update(self):
         pygame.display.update()
@@ -99,7 +121,7 @@ class CreatWindow(object):
                 exit()
             if event.type == KEYDOWN:
                 if event.key == K_SPACE:  # 空格加速
-                    self.maxspeed = 10
+                    self.maxspeed = 15
             if event.type == KEYUP:
                 if event.key == K_SPACE:
                     self.maxspeed = 6
@@ -159,6 +181,9 @@ class CreatWindow(object):
             self.locat[1] += self.speed_xy[1]
 
     def move(self):
+
+        if self.isDie:
+            return
 
         keys = pygame.key.get_pressed()
 
@@ -227,15 +252,7 @@ class CreatWindow(object):
     def dieJudge(self):
 
         if self.isDie:
-            self.isDie = False
-            time.sleep(1)
-            # 随机出生点
-            self.Position[0] = randint(100, self.MapSize[0] - 100)
-            self.Position[1] = randint(100, self.MapSize[1] - 100)
-            self.locat[0] = self.size[0] // 2
-            self.locat[1] = self.size[1] // 2
-            self.winPos = self.calc.getWinPos()
-            self.initSnake()
+            return
 
         if self.Position[0] <= 0 or self.Position[0] >= self.MapSize[0] or self.Position[1] <= 0 or self.Position[1] >= self.MapSize[1]:
             self.isDie = True
@@ -246,18 +263,35 @@ class CreatWindow(object):
                 self.food.append(self.snake[i])
 
             self.snake.clear()
+            # 重生
+            threading.Thread(target=self.relive).start()
+
+    def relive(self):
+        time.sleep(1)
+        self.isDie = False
+        # 随机出生点
+        self.Position[0] = randint(100, self.MapSize[0] - 100)
+        self.Position[1] = randint(100, self.MapSize[1] - 100)
+        self.locat[0] = self.size[0] // 2
+        self.locat[1] = self.size[1] // 2
+        self.winPos = self.calc.getWinPos()
+        self.initSnake()
 
 
 if __name__ == '__main__':
     win = CreatWindow((640, 400))
+    ai = AI(win.MapSize, 10, win.food, win.snake)
 
     while True:
         win.setTick(40)
+
         win.setBackground()
         win.ListionEvent()
 
         win.dieJudge()
         win.move()
+        ai.run()
+        win.drawEnemy(ai)
         win.drawFood()
         win.drawSnake()
 
