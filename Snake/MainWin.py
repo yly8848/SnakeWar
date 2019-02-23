@@ -58,8 +58,6 @@ class CreatWindow(object):
 
         self.Position[0] = randint(100, self.MapSize[0] - 100)
         self.Position[1] = randint(100, self.MapSize[1] - 100)
-        self.Position[0] = 200
-        self.Position[1] = 1000
         self.locat[0] = self.size[0] // 2
         self.locat[1] = self.size[1] // 2
         self.winPos = self.calc.getWinPos()

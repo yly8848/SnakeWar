@@ -22,7 +22,7 @@ class GamerData(object):
         self.initFood()
 
     def initFood(self):
-        for x in range(200):
+        for x in range(400):
             self.addFood([randint(10, self.MapSize[0] - 10),
                           randint(10, self.MapSize[1] - 10)])
 
@@ -63,8 +63,8 @@ class GamerData(object):
                 self.FoodList.remove(pos)
             self.mutex.release()
 
-        if len(self.FoodList) < 100:
-            for x in range(100):
+        if len(self.FoodList) < 200:
+            for x in range(200):
                 self.addFood([randint(10, self.MapSize[0] - 10),
                               randint(10, self.MapSize[1] - 10)])
 
