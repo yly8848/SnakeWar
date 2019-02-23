@@ -9,7 +9,7 @@ from TCP.GamerData import *
 from TCP.TCP_Server import *
 
 
-class AI(object):
+class AI(threading.Thread):
     """人机类,主要控制机器蛇的各种行为
 
     """
@@ -20,19 +20,21 @@ class AI(object):
 
     isDie = False
 
-    def __init__(self, name, MapSize, speed, gamerData):
+    def __init__(self, name, MapSize, gamerData, speed,):
         """Args:
                     name: ai的名字
                     MapSize: 地图大小,人机的活动范围
-                    speed: 人机的移动速度
                     gamerData: 所有玩家数据
+                    speed: 人机的移动速度
         """
         super(AI, self).__init__()
         self.name = name
         self.MapSize = MapSize
-        self.speed = speed
+
         self.gamerData = gamerData
         self.food = gamerData.FoodList
+
+        self.speed = speed
 
         self.gamerData.addGamer(self.name)
 
@@ -42,8 +44,7 @@ class AI(object):
     def getHead(self):
         return self.Head
 
-    def run(self, server):
-
+    def letWeGo(self, server):
         if self.isDie:
             return
         if self.dieJudge(server):
@@ -101,7 +102,7 @@ class AI(object):
         return False
 
     def Wait(self):
-        time.sleep(1)
+        time.sleep(2)
         self.isDie = False
         self.Head = Vector(
             randint(100, self.MapSize[0] - 100), randint(100, self.MapSize[1] - 100))

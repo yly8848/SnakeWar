@@ -112,10 +112,10 @@ class CreatWindow(object):
                 yy = data[x][1]
                 z = data[x][2]
                 self.enemyDict[x].insert(0, [xx, yy])
-                if z < len(self.enemyDict[x]):
-                    self.enemyDict[x].pop()
-                elif z == 0:
+                if z == 0:
                     self.enemyDict[x].clear()
+                elif z < len(self.enemyDict[x]):
+                    self.enemyDict[x].pop()
             self.mutex.release()
 
     def drawEnemy(self):

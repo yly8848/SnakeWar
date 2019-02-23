@@ -62,7 +62,6 @@ class getClientSocket(object):
                 size = j['size']
                 head.append(size)
                 self.gamerData.upGamerData(self.flag, head)
-                print(self.flag, 'head pos is ', head)
 
             elif message == 'eatfood':
                 eat = j['eatfood']
@@ -81,7 +80,6 @@ class getClientSocket(object):
                 data = {'message': 'addfood', 'addfood': add}
                 datas = json.dumps(data)
                 self.Server.SandAll(self.tcp, datas)
-                print("++++++++++++++++++", datas)
 
         except Exception as e:
             print(self.flag, 'json解析错误')

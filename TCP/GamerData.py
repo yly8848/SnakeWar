@@ -61,12 +61,12 @@ class GamerData(object):
         if self.mutex.acquire(1):
             if pos in self.FoodList:
                 self.FoodList.remove(pos)
-
-            if len(self.FoodList) < 100:
-                for x in range(100):
-                    self.addFood([randint(10, self.MapSize[0] - 10),
-                                  randint(10, self.MapSize[1] - 10)])
             self.mutex.release()
+
+        if len(self.FoodList) < 100:
+            for x in range(100):
+                self.addFood([randint(10, self.MapSize[0] - 10),
+                              randint(10, self.MapSize[1] - 10)])
 
     def udData(self, name):
         size = self.HeadList[name][2]

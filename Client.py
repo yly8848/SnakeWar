@@ -29,12 +29,10 @@ class Client():
                 food = j['addfood']
                 for x in food:
                     self.win.food.append(x)
-                print("add food ++++++++++++", food)
             elif message == 'eatfood':
                 food = j['eatfood']
                 if food in self.win.food:
                     self.win.food.remove(food)
-                print("eat food ------------", food)
             elif message == 'exit':
                 name = j['name']
                 self.win.delEnemy(name)
