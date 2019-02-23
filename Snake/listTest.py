@@ -28,4 +28,8 @@ a.append(b)
 print(b[2:6])
 print(a is not a)
 
-a = {"sdf": 234, "dsf": 3254}
+a = {"sdf": 234, "dsf": 3254, 2: 324}
+del a['sdf']
+print(a)
+b = '2'
+print(b in a)

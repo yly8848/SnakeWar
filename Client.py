@@ -16,13 +16,6 @@ class Client():
                               self.getData, None, self.Close)
 
     def getData(self, data):
-
-        self.Case(data)
-
-    def Close(self):
-        print("服务器已关闭连接")
-
-    def Case(self, data):
         try:
             j = json.loads(data)
             message = j['message']
@@ -36,15 +29,23 @@ class Client():
                 food = j['addfood']
                 for x in food:
                     self.win.food.append(x)
+                print("add food ++++++++++++", food)
             elif message == 'eatfood':
                 food = j['eatfood']
                 if food in self.win.food:
                     self.win.food.remove(food)
+                print("eat food ------------", food)
+            elif message == 'exit':
+                name = j['name']
+                self.win.delEnemy(name)
 
         except Exception as e:
             print("json解析错误")
             print(data)
             return
+
+    def Close(self):
+        print("服务器已关闭连接")
 
 
 client = Client()

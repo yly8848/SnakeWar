@@ -37,8 +37,13 @@ class getClientSocket(object):
         self.sendpos()
 
     def Close(self):
-        self.gamerData.delGamer(self.flag)
         print(self.flag, "is close")
+        self.gamerData.delGamer(self.flag)
+        self.Server.ClientList.remove(self.tcp)
+
+        data = {'message': 'exit', 'name': self.flag}
+        datas = json.dumps(data)
+        self.Server.SandAll(None, datas)
 
     def sendpos(self):
         headpos = self.gamerData.HeadList.copy()
@@ -57,6 +62,7 @@ class getClientSocket(object):
                 size = j['size']
                 head.append(size)
                 self.gamerData.upGamerData(self.flag, head)
+                print(self.flag, 'head pos is ', head)
 
             elif message == 'eatfood':
                 eat = j['eatfood']

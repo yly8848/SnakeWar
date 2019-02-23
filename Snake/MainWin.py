@@ -111,7 +111,7 @@ class CreatWindow(object):
                 xx = data[x][0]
                 yy = data[x][1]
                 z = data[x][2]
-                self.enemyDict[x].append([xx, yy])
+                self.enemyDict[x].insert(0, [xx, yy])
                 if z < len(self.enemyDict[x]):
                     self.enemyDict[x].pop()
                 elif z == 0:
@@ -126,6 +126,11 @@ class CreatWindow(object):
                         p = self.calc.getObjectPos(self.winPos, i)
                         self.drawCircle(p, (255, 36, 12))
         self.mutex.release()
+
+    def delEnemy(self, name):
+        name = str(name)
+        if name in self.enemyDict:
+            del self.enemyDict[name]
 
     def update(self):
         pygame.display.update()
@@ -258,8 +263,6 @@ class CreatWindow(object):
         # 碰撞检测
         flag = True
         for i in self.food:
-            if i is int:
-                continue
             x = math.pow(self.Position[0] - i[0], 2)
             y = math.pow(self.Position[1] - i[1], 2)
             if math.sqrt(x + y) < 18:
@@ -280,7 +283,16 @@ class CreatWindow(object):
         if self.isDie:
             return
 
-        if self.Position[0] <= 0 or self.Position[0] >= self.MapSize[0] or self.Position[1] <= 0 or self.Position[1] >= self.MapSize[1]:
+        flag = False
+        for x in self.enemyDict:
+            for i in self.enemyDict[x]:
+                x = math.pow(self.Position[0] - i[0], 2)
+                y = math.pow(self.Position[1] - i[1], 2)
+                if math.sqrt(x + y) < 18:
+                    flag = True
+                    break
+
+        if flag or self.Position[0] <= 0 or self.Position[0] >= self.MapSize[0] or self.Position[1] <= 0 or self.Position[1] >= self.MapSize[1]:
             self.isDie = True
             print("you is die")
             self.length = 0

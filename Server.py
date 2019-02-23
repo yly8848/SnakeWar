@@ -12,7 +12,7 @@ MapSize = [3000, 3000]
 gamerData = GamerData(MapSize)
 
 # ai = []
-# for x in range(3):
+# for x in range(5):
 #     a = AI('ai' + str(x), MapSize, 6, gamerData)
 #     ai.append(a)
 

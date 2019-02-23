@@ -54,13 +54,14 @@ class AI(object):
             mini = [999, 0]
             len_f = len(self.food)
             for i in range(0, len_f):
-                if type(self.food[i]) != list:
-                    mini[1] = 0
-                else:
+                try:
                     n = self.Head.get_distance(self.food[i])
                     if n < mini[0]:
                         mini[0] = n
                         mini[1] = i
+                except Exception as e:
+                    mini[1] = 0
+                    break
 
             self.eat_food = self.food[mini[1]]
             # 确定方向
@@ -69,7 +70,7 @@ class AI(object):
 
         # 向食物方向移动 head -> food
         self.Head = self.Head + (self.direc * self.speed)
-
+        # 保存数据
         self.gamerData.upGamerData(
             self.name, [(int)(self.Head[0]), (int)(self.Head[1]), self.length])
 

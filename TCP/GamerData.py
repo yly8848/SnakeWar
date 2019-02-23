@@ -43,7 +43,7 @@ class GamerData(object):
                 food.append(self.AllPos[name][x])
             data = {'message': 'addfood', 'addfood': food}
             datas = json.dumps(data)
-            server.SendAll(None, datas)
+            server.SandAll(None, datas)
 
         self.AllPos[name].clear()
         self.HeadList[name] = [-1, -1, 0]
@@ -72,7 +72,7 @@ class GamerData(object):
         size = self.HeadList[name][2]
         x = self.HeadList[name][0]
         y = self.HeadList[name][1]
-        self.AllPos[name].append([x, y])
+        self.AllPos[name].insert(0, [x, y])
         length = len(self.AllPos[name])
         if length > size:
             self.AllPos[name].pop()
