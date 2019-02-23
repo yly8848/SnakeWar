@@ -8,7 +8,7 @@ import socket
 class TCP_Client(threading.Thread):
     """TCP客户端工具类,"""
 
-    __SIZE = 2048  # 接收数据的长度
+    __SIZE = 65535  # 接收数据的长度
     __isConnect = 1  # 是否已创建已有连接
 
     def __init__(self, address, function=None, client=None, Close=None):
@@ -38,6 +38,8 @@ class TCP_Client(threading.Thread):
         self.function = function
         self.Close = Close
 
+        self.mutex = threading.Lock()
+
         self.start()
 
     def run(self):
@@ -47,7 +49,6 @@ class TCP_Client(threading.Thread):
                 data = self.clientTCP.recv(self.__SIZE)
                 if not data:
                     break  # Python的recv有些不一样,连接断开了还会接收到空的字符
-
                 self.function(data.decode("utf-8"))
 
             except Exception as e:
@@ -62,25 +63,13 @@ class TCP_Client(threading.Thread):
 
         Returns:
                 如果当前对象还没有连接上服务器,返回False
-                发送成功返回True
+                发送成功返回None
                 其他的话,等着报错
-
         """
 
         if self.__isConnect != 0:
             return False
-
-        if type(data) == type(''):
-            self.clientTCP.sendall(data.encode("utf-8"))
-            return True
-
-
-if __name__ == '__main__':
-
-    def ppp(str): return print(str)
-
-    def Close(): print("server is close")
-
-    tcp = TCP_Client(("127.0.0.1", 8848), ppp, Close)
-    a = tcp.sendData("aaa")
-    print(a)
+        if self.mutex.acquire(1):
+            if type(data) == type(''):
+                flag = self.clientTCP.sendall(data.encode("utf-8"))
+            self.mutex.release()

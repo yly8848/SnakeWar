@@ -7,18 +7,20 @@ from random import *
 import math
 import time
 import threading
+import json
 
-from PositionCalc import *
-from Roboter import AI
-from Vector import Vector
+import sys
+sys.path.append(r"../")
+from Snake.PositionCalc import *
+from TCP.TCP_Client import *
 
 
 class CreatWindow(object):
     """游戏窗口控制类"""
 
-    MapSize = [1680, 945]  # 地图大小
+    MapSize = [3000, 3000]  # 地图大小
 
-    locat = []  # 蛇头 本地窗口坐标
+    locat = [0, 0]  # 蛇头 本地窗口坐标
     Position = [300, 300]  # 蛇头 大地图坐标
     winPos = []  # 视野/窗口左上角位于大地图的坐标
 
@@ -29,33 +31,40 @@ class CreatWindow(object):
     angle_speed = 15  # 蛇头转向时的速度
 
     snake = []  # 蛇身节点
+    length = 0
     food = []
-    enemylist = []
+
+    enemyDict = {}
 
     isDie = False
 
     def __init__(self, size):
 
         self.size = size
-        self.locat = [size[0] // 2, size[1] // 2]
 
         pygame.init()
         self.screen = pygame.display.set_mode(size, 0, 32)
         pygame.display.set_caption("Snake War")
-        self.background = pygame.image.load("./bg.png").convert()
+        self.background = pygame.image.load("./bg.jpg").convert()
         self.clock = pygame.time.Clock()
 
         self.calc = Calc(self.Position, self.locat, self.size)
-        self.winPos = self.calc.getWinPos()
+
+        self.mutex = threading.Lock()
 
         self.initSnake()
 
-        for x in range(100):
-            self.food.append(
-                (randint(10, self.MapSize[0] - 10), randint(10, self.MapSize[1] - 10)))
-
     def initSnake(self):
 
+        self.Position[0] = randint(100, self.MapSize[0] - 100)
+        self.Position[1] = randint(100, self.MapSize[1] - 100)
+        self.Position[0] = 200
+        self.Position[1] = 1000
+        self.locat[0] = self.size[0] // 2
+        self.locat[1] = self.size[1] // 2
+        self.winPos = self.calc.getWinPos()
+
+        self.length = 10
         for x in range(10):
             self.snake.append((self.Position[0], self.Position[1] + x * 10))
 
@@ -89,27 +98,34 @@ class CreatWindow(object):
                 p = self.calc.getObjectPos(self.winPos, x)
                 self.drawCircle(p, (123, 36, 241))
 
-        if len(self.food) < 30:
-            for i in range(40):
-                self.food.append(
-                    (randint(10, self.MapSize[0] - 10), randint(10, self.MapSize[1] - 10)))
+        # if len(self.food) < 30:
+        #     for i in range(40):
+        #         self.food.append(
+        #             (randint(10, self.MapSize[0] - 10), randint(10, self.MapSize[1] - 10)))
 
-    def drawEnemy(self, ai):
+    def upEnemy(self, data):
+        if self.mutex.acquire(1):
+            for x in data:
+                if x not in self.enemyDict:
+                    self.enemyDict[x] = []
+                xx = data[x][0]
+                yy = data[x][1]
+                z = data[x][2]
+                self.enemyDict[x].append([xx, yy])
+                if z < len(self.enemyDict[x]):
+                    self.enemyDict[x].pop()
+                elif z == 0:
+                    self.enemyDict[x].clear()
+            self.mutex.release()
 
-        if ai.isDie and ai.flag:
-            ai.flag = False
-            for i in range(0, len(self.enemylist), 3):
-                self.food.append(self.enemylist[i])
-            self.enemylist.clear()
-        elif not ai.isDie:
-            self.enemylist.insert(0, ai.Head.to_int())
-            if ai.length < len(self.enemylist):
-                self.enemylist.pop()
-
-            for x in self.enemylist:
-                if self.calc.rangeJudge(self.winPos, x):
-                    p = self.calc.getObjectPos(self.winPos, x)
-                    self.drawCircle(p)
+    def drawEnemy(self):
+        if self.mutex.acquire(1):
+            for x in self.enemyDict:
+                for i in self.enemyDict[x]:
+                    if self.calc.rangeJudge(self.winPos, i):
+                        p = self.calc.getObjectPos(self.winPos, i)
+                        self.drawCircle(p, (255, 36, 12))
+        self.mutex.release()
 
     def update(self):
         pygame.display.update()
@@ -180,7 +196,11 @@ class CreatWindow(object):
             self.locat[0] += self.speed_xy[0]
             self.locat[1] += self.speed_xy[1]
 
-    def move(self):
+    def move(self, tcp):
+        # 发送数据
+        data = {'message': 'pos', 'head': self.Position, 'size': self.length}
+        datas = json.dumps(data)
+        tcp.sendData(datas)
 
         if self.isDie:
             return
@@ -238,18 +258,24 @@ class CreatWindow(object):
         # 碰撞检测
         flag = True
         for i in self.food:
+            if i is int:
+                continue
             x = math.pow(self.Position[0] - i[0], 2)
             y = math.pow(self.Position[1] - i[1], 2)
             if math.sqrt(x + y) < 18:
                 self.food.remove(i)
+                data = {'message': 'eatfood', 'eatfood': i}
+                datas = json.dumps(data)
+                tcp.sendData(datas)  # 发送数据
                 flag = False
+                self.length += 1
 
         # 移动蛇
         self.snake.insert(0, (self.Position[0], self.Position[1]))
         if flag:
             self.snake.pop()
 
-    def dieJudge(self):
+    def dieJudge(self, tcp):
 
         if self.isDie:
             return
@@ -257,10 +283,18 @@ class CreatWindow(object):
         if self.Position[0] <= 0 or self.Position[0] >= self.MapSize[0] or self.Position[1] <= 0 or self.Position[1] >= self.MapSize[1]:
             self.isDie = True
             print("you is die")
+            self.length = 0
 
+            eat = []
             # 变成养料
             for i in range(2, len(self.snake), 4):
                 self.food.append(self.snake[i])
+                eat.append(self.snake[i])
+
+            # 发送数据
+            data = {'message': 'addfood', 'addfood': eat}
+            datas = json.dumps(data)
+            tcp.sendData(datas)
 
             self.snake.clear()
             # 重生
@@ -270,17 +304,12 @@ class CreatWindow(object):
         time.sleep(1)
         self.isDie = False
         # 随机出生点
-        self.Position[0] = randint(100, self.MapSize[0] - 100)
-        self.Position[1] = randint(100, self.MapSize[1] - 100)
-        self.locat[0] = self.size[0] // 2
-        self.locat[1] = self.size[1] // 2
-        self.winPos = self.calc.getWinPos()
+
         self.initSnake()
 
 
 if __name__ == '__main__':
     win = CreatWindow((640, 400))
-    ai = AI(win.MapSize, 10, win.food, win.snake)
 
     while True:
         win.setTick(40)
@@ -290,8 +319,9 @@ if __name__ == '__main__':
 
         win.dieJudge()
         win.move()
-        ai.run()
-        win.drawEnemy(ai)
+
+        win.drawEnemy()
+
         win.drawFood()
         win.drawSnake()
 
