@@ -35,6 +35,7 @@ class CreatWindow(object):
     food = []
 
     enemyDict = {}
+    colorlist=[[220,20,60],[219,112,147],[255,105,180],[199,21,133],[255,0,255],[139,0,139],[255,127,80]]
 
     isDie = False
 
@@ -45,7 +46,13 @@ class CreatWindow(object):
         pygame.init()
         self.screen = pygame.display.set_mode(size, 0, 32)
         pygame.display.set_caption("Snake War")
+
         self.background = pygame.image.load("./bg.jpg").convert()
+
+        self.head1 = pygame.image.load("./head.gif").convert_alpha()
+        self.head2 = pygame.image.load("./head2.png").convert_alpha()
+        self.head = self.head1
+
         self.clock = pygame.time.Clock()
 
         self.calc = Calc(self.Position, self.locat, self.size)
@@ -60,6 +67,7 @@ class CreatWindow(object):
         self.Position[1] = randint(100, self.MapSize[1] - 100)
         self.locat[0] = self.size[0] // 2
         self.locat[1] = self.size[1] // 2
+
         self.winPos = self.calc.getWinPos()
 
         self.length = 10
@@ -84,22 +92,28 @@ class CreatWindow(object):
 
     def drawSnake(self):
 
+        flag = True
         for x in self.snake:
             if self.calc.rangeJudge(self.winPos, x):
+                if flag:
+                    flag = False
+                    continue
                 p = self.calc.getObjectPos(self.winPos, x)
                 self.drawCircle(p)
+
+        if not self.isDie:
+            if self.angle >= 180:
+                self.head = pygame.transform.flip(self.head, True, False)
+            p = self.calc.getObjectPos(self.winPos, self.Position)
+            heads = pygame.transform.scale(self.head, (20, 20))
+            self.screen.blit(heads, [p[0] - 10, p[1] - 10])
 
     def drawFood(self):
 
         for x in self.food:
             if self.calc.rangeJudge(self.winPos, x):
                 p = self.calc.getObjectPos(self.winPos, x)
-                self.drawCircle(p, (123, 36, 241))
-
-        # if len(self.food) < 30:
-        #     for i in range(40):
-        #         self.food.append(
-        #             (randint(10, self.MapSize[0] - 10), randint(10, self.MapSize[1] - 10)))
+                self.drawCircle(p, (0, 191, 255))
 
     def upEnemy(self, data):
         if self.mutex.acquire(1):
@@ -117,12 +131,14 @@ class CreatWindow(object):
             self.mutex.release()
 
     def drawEnemy(self):
+        n=0
         if self.mutex.acquire(1):
             for x in self.enemyDict:
                 for i in self.enemyDict[x]:
                     if self.calc.rangeJudge(self.winPos, i):
                         p = self.calc.getObjectPos(self.winPos, i)
-                        self.drawCircle(p, (255, 36, 12))
+                        self.drawCircle(p, self.colorlist[n])
+                n=(n+1)%len(self.colorlist)
         self.mutex.release()
 
     def delEnemy(self, name):
@@ -258,16 +274,21 @@ class CreatWindow(object):
         self.Position[0] += self.speed_xy[0]
         self.Position[1] += self.speed_xy[1]
 
+        self.head = self.head1
+
         # 碰撞检测
         flag = True
         for i in self.food:
             x = math.pow(self.Position[0] - i[0], 2)
             y = math.pow(self.Position[1] - i[1], 2)
             if math.sqrt(x + y) < 18:
+                self.head = self.head2
                 self.food.remove(i)
+
                 data = {'message': 'eatfood', 'eatfood': i}
                 datas = json.dumps(data)
                 tcp.sendData(datas)  # 发送数据
+
                 flag = False
                 self.length += 1
 
@@ -292,12 +313,12 @@ class CreatWindow(object):
 
         if flag or self.Position[0] <= 0 or self.Position[0] >= self.MapSize[0] or self.Position[1] <= 0 or self.Position[1] >= self.MapSize[1]:
             self.isDie = True
-            print("you is die")
+            print("you are die")
             self.length = 0
 
             eat = []
             # 变成养料
-            for i in range(2, len(self.snake), 4):
+            for i in range(2, len(self.snake), 2):
                 self.food.append(self.snake[i])
                 eat.append(self.snake[i])
 
@@ -316,23 +337,3 @@ class CreatWindow(object):
         # 随机出生点
 
         self.initSnake()
-
-
-if __name__ == '__main__':
-    win = CreatWindow((640, 400))
-
-    while True:
-        win.setTick(40)
-
-        win.setBackground()
-        win.ListionEvent()
-
-        win.dieJudge()
-        win.move()
-
-        win.drawEnemy()
-
-        win.drawFood()
-        win.drawSnake()
-
-        win.update()

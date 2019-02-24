@@ -81,7 +81,7 @@ class AI(threading.Thread):
 
         # 食物 碰撞检测
         if self.Head.judge(self.eat_food, 18):
-            self.gamerData.removeFood(self.eat_food)
+            self.gamerData.removeFood(self.eat_food, server)
 
             data = {'message': 'eatfood', 'eatfood': self.eat_food}
             datas = json.dumps(data)

@@ -22,7 +22,7 @@ class GamerData(object):
         self.initFood()
 
     def initFood(self):
-        for x in range(400):
+        for x in range(500):
             self.addFood([randint(10, self.MapSize[0] - 10),
                           randint(10, self.MapSize[1] - 10)])
 
@@ -57,16 +57,23 @@ class GamerData(object):
                 self.FoodList.append(pos)
             self.mutex.release()
 
-    def removeFood(self, pos):
+    def removeFood(self, pos, server):
         if self.mutex.acquire(1):
             if pos in self.FoodList:
                 self.FoodList.remove(pos)
             self.mutex.release()
 
         if len(self.FoodList) < 200:
-            for x in range(200):
-                self.addFood([randint(10, self.MapSize[0] - 10),
-                              randint(10, self.MapSize[1] - 10)])
+            food = []
+            for x in range(300):
+                x = randint(10, self.MapSize[0] - 10)
+                y = randint(10, self.MapSize[1] - 10)
+                self.addFood([x, y])
+                food.append([x, y])
+
+            data = {'message': 'addfood', 'addfood': food}
+            datas = json.dumps(data)
+            server.SandAll(None, datas)
 
     def udData(self, name):
         size = self.HeadList[name][2]

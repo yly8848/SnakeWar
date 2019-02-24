@@ -1,4 +1,5 @@
 #_*_coding:utf-8_*_
+import re
 import json
 import sys
 sys.path.append(r"../")
@@ -53,34 +54,37 @@ class getClientSocket(object):
         self.tcp.sendData(datas)
 
     def Case(self, data):
-        try:
-            j = json.loads(data)
-            message = j['message']
+        regx = re.compile(r'({.+?}{1,2})')
+        datas = regx.findall(data)
+        for i in datas:
+            try:
+                j = json.loads(i)
+                message = j['message']
 
-            if message == 'pos':
-                head = j['head']
-                size = j['size']
-                head.append(size)
-                self.gamerData.upGamerData(self.flag, head)
+                if message == 'pos':
+                    head = j['head']
+                    size = j['size']
+                    head.append(size)
+                    self.gamerData.upGamerData(self.flag, head)
 
-            elif message == 'eatfood':
-                eat = j['eatfood']
-                self.gamerData.removeFood(eat)
+                elif message == 'eatfood':
+                    eat = j['eatfood']
+                    self.gamerData.removeFood(eat, self.Server)
 
-                data = {"message": "eatfood", "eatfood": eat}
-                datas = json.dumps(data)
-                self.Server.SandAll(self.tcp, datas)
+                    data = {"message": "eatfood", "eatfood": eat}
+                    datas = json.dumps(data)
+                    self.Server.SandAll(self.tcp, datas)
 
-            elif message == 'addfood':
-                self.gamerData.dieGamer(self.flag)
-                add = j['addfood']
-                for x in add:
-                    self.gamerData.addFood(x)
+                elif message == 'addfood':
+                    self.gamerData.dieGamer(self.flag)
+                    add = j['addfood']
+                    for x in add:
+                        self.gamerData.addFood(x)
 
-                data = {'message': 'addfood', 'addfood': add}
-                datas = json.dumps(data)
-                self.Server.SandAll(self.tcp, datas)
+                    data = {'message': 'addfood', 'addfood': add}
+                    datas = json.dumps(data)
+                    self.Server.SandAll(self.tcp, datas)
 
-        except Exception as e:
-            print(self.flag, 'json解析错误')
-            return
+            except Exception as e:
+                print(self.flag, 'json解析错误')
+                continue
