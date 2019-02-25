@@ -47,7 +47,7 @@ class CreatWindow(object):
         self.screen = pygame.display.set_mode(size, 0, 32)
         pygame.display.set_caption("Snake War")
 
-        self.background = pygame.image.load("./bg.jpg").convert()
+        self.background = pygame.image.load("./bg.png").convert()
 
         self.head1 = pygame.image.load("./head.gif").convert_alpha()
         self.head2 = pygame.image.load("./head2.png").convert_alpha()
@@ -67,6 +67,8 @@ class CreatWindow(object):
         self.Position[1] = randint(100, self.MapSize[1] - 100)
         self.locat[0] = self.size[0] // 2
         self.locat[1] = self.size[1] // 2
+        # self.Position[0] = 200
+        # self.Position[1] = 200
 
         self.winPos = self.calc.getWinPos()
 
